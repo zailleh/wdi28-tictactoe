@@ -1,12 +1,32 @@
+@import url('https://fonts.googleapis.com/css?family=Concert+One');
+
+
 body {
-  background-color: darkgrey;
+  background: rgba(128,128,128,0.5) url('../res/ttt_bg.png');
+  background-size: 20vw 20vw;
+  font-family: 'Concert One', cursive;
+  /* background-repeat: space; */
+  animation: slide 30s linear infinite;
+
+}
+
+@keyframes slide{
+  0%{
+    background-position: 0vw 100vw
+  }
+  100%{
+    background-position: 100vw 0vw
+  }
 }
 
 .container {
   min-height: 100vh;
   display: flex;
+  flex-flow: column;
+  align-content: center;
   align-items: center;
   justify-content: center;
+  vertical-align: baseline;
 }
 
 * {
@@ -20,10 +40,22 @@ body {
   border-radius: 2vw;
   display: grid;
   grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-  width: 30vw;
-  height: 30vw;
-  margin: auto auto;
+  max-width: 640px;
+  max-height: 640px;
+  height: calc( 100vmin - 11vmax );
+  width: calc( 100vmin - 11vmax );
+  min-width: 320px;
+  min-height: 320px;
+  /* margin: auto auto; */
   box-shadow: 1vw 1vw 1vw rgba(0,0,0,0.25);
+}
+
+h1#title {
+  font-size: 6vmax;
+  margin: .125em;
+  color: #FFF;
+  text-shadow: .1em .1em .1em rgba(0,0,0,0.25);
+  min-width: 341px;
 }
 
 .slot {
@@ -32,7 +64,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 5em;
+  font-size: 10vmin;
   transition: .5s color;
 }
 
@@ -54,8 +86,36 @@ body {
   top: 100%;
   width: 100%;
   background-color: white;
-  padding: 1em;
-  border-radius: 1em;
-  box-shadow: 1em 1em 1em rgba(0,0,0,0.25);
+  padding: .25em;
+  border-radius: .5em;
+  box-shadow: .25em .25em .25em rgba(0,0,0,0.25);
   border: 2px solid green;
+  font-size: 4vmin;
+  display: flex;
+  align-content: space-between;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.menubutton {
+  font-size: 4vmin;
+  grid-column: span 3;
+  margin: .25em;
+  background-color: grey;
+  border-radius: .25em;
+  box-shadow: 0.1em 0.1em 0.1em rgba(0,0,0,0.5);
+  color: white;
+  border: 0;
+}
+
+.menubutton:nth-child(1){
+  background-color: red;
+}
+
+.menubutton:nth-child(2){
+  background-color: green;
+}
+
+.menubutton:nth-child(2){
+  background-color: blue;
 }
