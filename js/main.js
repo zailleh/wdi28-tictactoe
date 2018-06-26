@@ -44,12 +44,11 @@ const takeSlot = function () {
     default:
       $( this ).append( $( crossIco ) )
   }
-  console.log(player);
 
 
   $( this ).off( 'click', takeSlot );
 
-  debugger;
+  // debugger;
   let winInfo = checkForWin()
   if ( winInfo.win === true ) {
     winDisplay( winInfo );
@@ -61,25 +60,28 @@ const takeSlot = function () {
   } else {
     player = 'naught';
   }
-  console.log(player);
 
 
   if ( aiEnabled === true && aiTurn === true ) {
     aiTurn = false;
+    console.log( 'player turn next' );
   } else if ( aiEnabled === true && aiTurn === false ) {
     aiTurn = true;
+    console.log( 'running AI');
     setTimeout ( function () {
         // check to see if AI can win with this move
         // check to see if player will win next move
-        if ( !unbeatableAI( 'naught' ) ) {
-          if ( !unbeatableAI( 'cross' ) ) {
+        if ( !unbeatableAI( 'cross' ) ) {
+          if ( !unbeatableAI( 'naught' ) ) {
             pickRandomSlot();
         }
       }
     }, 1000 );
   }
 }
+
 const pickRandomSlot = function () {
+  console.log('picking random slot for ai');
   let freeSlot = false;
   const win = {};
   do {
@@ -96,16 +98,17 @@ const pickRandomSlot = function () {
   } while (!freeSlot)
 }
 
-const checkYforWin = function ( player ) {
+const checkYforWin = function ( plyr ) {
  // check y straights for win
   let win = false;
   const winSlots = [];
   const aiSlots = [];
   const emptySlots = [];
+  console.log('checking y slots for:',plyr);
 
   for ( let y = 0; y < 3; y++ ) {
     for ( let x = 0; x < 3; x++) {
-      if ( gameData[x][y] === player ) {
+      if ( gameData[x][y] === plyr ) {
         winSlots.push({ x:x, y:y })
       } else if ( gameData[x][y] === null ) {
         emptySlots.push({ x:x, y:y })
@@ -121,25 +124,27 @@ const checkYforWin = function ( player ) {
       break;
     } else {
       winSlots.length = 0;
+      emptySlots.length = 0;
     }
   }
 
   return {win: win, slots: winSlots, aiSlots: aiSlots };
 }
 
-const checkXforWin = function ( player ) {
+const checkXforWin = function ( plyr ) {
   // check x straights for win
   let win = false;
   const winSlots = [];
   const aiSlots = [];
   const emptySlots = [];
-
+  // debugger ;
+  console.log('checking x slots for:',plyr);
   for ( let x = 0; x < 3; x++) {
     for ( let y = 0; y < 3; y++ ) {
-      if (gameData[x][y] === player) {
+      if (gameData[x][y] === plyr) {
         winSlots.push({ x:x, y:y });
       } else if ( gameData[x][y] === null ) {
-        emptySlots.push({ x:x ,y:y })
+        emptySlots.push({ x:x ,y:y });
       }
     }
 
@@ -152,21 +157,23 @@ const checkXforWin = function ( player ) {
       break;
     } else {
       winSlots.length = 0;
+      emptySlots.length = 0;
     }
   }
 
   return {win: win, slots: winSlots, aiSlots: aiSlots};
 }
 
-const diag1ForWin = function ( player ) {
+const diag1ForWin = function ( plyr ) {
   // check corner x=0,y=0 > x=2, y=2 for win
   let win = false;
   const winSlots = [];
   const aiSlots = [];
   const emptySlots = [];
+  console.log('checking diag1 slots for:',plyr);
 
   for ( let xy = 0; xy < 3; xy++ ) {
-    if (gameData[xy][xy] === player) {
+    if (gameData[xy][xy] === plyr) {
       winSlots.push({x:xy,y:xy})
     } else if ( gameData[xy][xy] === null ) {
       emptySlots.push({x:xy,y:xy})
@@ -184,15 +191,17 @@ const diag1ForWin = function ( player ) {
   return {win: win, slots: winSlots, aiSlots: aiSlots };
 }
 
-const diag2ForWin = function ( player ) {
+const diag2ForWin = function ( plyr ) {
   // check corner x=2, y=0 > x=0, y=2, for win
   let win = false;
   const winSlots = [];
   const aiSlots = [];
   const emptySlots = [];
+  console.log('checking diag2 slots for:',plyr);
+
   for (let x = 0; x < 3; x++ ) {
     let y = 2 - x;
-    if (gameData[x][y] === player) {
+    if (gameData[x][y] === plyr) {
       winSlots.push({x:x,y:y})
     } else if ( gameData[x][y] === null ) {
       emptySlots.push({x:x,y:y})
@@ -218,29 +227,33 @@ const getRandomInt = function( max ) {
   return Math.floor(Math.random() * Math.floor(max));
 };
 
-const unbeatableAI = function ( player ) {
+const unbeatableAI = function ( plyr ) {
 
-  let win = checkYforWin( player );
+  let win = checkYforWin( plyr );
   if (win.aiSlots.length > 0) {
     aiClickTrigger( win );
+    console.log('checkYforWin -',plyr,'found slot for ai');
     return true;
   }
 
-  win = checkXforWin( player );
+  win = checkXforWin( plyr );
   if (win.aiSlots.length > 0) {
     aiClickTrigger( win );
+    console.log('checkXforWin -',plyr,'found slot for ai');
     return true;
   }
 
-  win = diag1ForWin( player );
+  win = diag1ForWin( plyr );
   if (win.aiSlots.length > 0) {
     aiClickTrigger( win );
+    console.log('diag1forWin -',plyr,'found slot for ai');
     return true;
   }
 
-  win = diag2ForWin( player );
+  win = diag2ForWin( plyr );
   if (win.aiSlots.length > 0) {
     aiClickTrigger( win );
+    console.log('diag2forWin -',plyr,'found slot for ai');
     return true;
   }
 
