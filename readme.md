@@ -30,12 +30,12 @@ I've designed the JavaScript to allow a scalable board-size to be added in the f
 In summary, when a player clicks on the grid-square they'd like to take, the click function begins. It will...
 1. Fill the grid-square with the current player's token.
 2. Check to see if a win has occurred.
-  1. If a win (or draw) has occurred display the win message with reset button.
+   1. If a win (or draw) has occurred display the win message with reset button.
 3. Switch to the other player.
 4. Else, if AI is enabled:
-  1. Check the gameboard to see if there are any slots that will make the AI win with this move.
-    1. If there are any slots that match this, take that slot by triggering click on that slot.
-  2. If not, check to see if there are any slots free on the gameboard that would allow the player to win with the next remove.
-    1. If there's a slot, take it to prevent the player from winning.
-  3. Otherwise pick a random available slot.
+   1. Check the gameboard to see if there are any slots that will make the AI win with this move.
+      1. If there are any slots that match this, take that slot by triggering click on that slot.
+   2. If not, check to see if there are any slots free on the gameboard that would allow the player to win with the next remove.
+      1. If there's a slot, take it to prevent the player from winning.
+   3. Otherwise pick a random available slot.
 5. If AI is not enabled, do nothing.
