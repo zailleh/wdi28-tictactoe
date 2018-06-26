@@ -6,11 +6,39 @@ let CrossIco = '<i class="fas fa-times"></i>'
 let playAgain = '<button class="menubutton" value="0">Play Again!</button>'
 let aiEnabled = true;
 let aiTurn = false;
+let score;
+
+const getScoreFromCookies = function () {
+  allCookies = document.cookie;
+  allCookies = allCookies.split(';');
+  scoreCookies = {};
+  for( let i = 0; i < allCookies.length; i++ ){
+    let thisCookie = allCookies[i].split('=')
+    switch (thisCookie[0]) {
+      case 'naught':
+        scoreCookies.naught = +thisCookie[0];
+        break;
+      case 'cross':
+        scoreCookies.cross = +thisCookie[0];
+        break;
+    }
+  }
+
+  return scoreCookies;
+}
+
+const setScoreInCookies = function () {
+  cookiesString = `naught=${ score.naught }; cross=${ score.cross }`;
+  document.cookie = cookiesString;
+}
 
 const makeGameBoard = function ( players ) { // populate array of slots in gameData and create DOM.
   // reset gamedata and gameboard
   gameData.length = 0;
   $('#gameboard').html("");
+
+  // load scores from cookies;
+  score = getScoreFromCookies();
 
   // populate gamedata and gameboard
   for (let x = 0; x < 3; x++ ) {
@@ -35,6 +63,9 @@ const makeGameBoard = function ( players ) { // populate array of slots in gameD
 const winDisplay = function ( winInfo ) { // display the win diaglog
   const replayBtn = $( playAgain );
 
+  // update scores & save to cookies
+  score[ player.toLowerCase() ]++;
+  setScoreInCookies( score );
 
   if ( winInfo.tie !== undefined ) {
     // it's a draw!
@@ -109,18 +140,27 @@ const callAI = function () {
 const pickRandomSlot = function () {
   let freeSlot = false;
   const win = {};
-  do {
-    win.aiSlots = [{
-      x: getRandomInt(3),
-      y: getRandomInt(3)
-    }];
+  getRandomInt(9)
 
-    if ( gameData[win.aiSlots[0].x][win.aiSlots[0].y] === null ) {
-      aiClickTrigger( win );
-      freeSlot = true;
-      break;
+  // get empty slots
+  const emptySlots = [];
+
+  for (let x = 0; x < 3; x++) {
+    for (let y = 0; y < 3; y++) {
+      if (gameData[x][y] === null) {
+        emptySlots.push({
+          x: x,
+          y: y
+        })
+      }
     }
-  } while (!freeSlot)
+  }
+
+  const rand = getRandomInt( emptySlots.length )
+
+  win.aiSlots = [ emptySlots[rand] ]
+
+  aiClickTrigger( win );
 }
 
 const checkYforWin = function ( plyr ) {
