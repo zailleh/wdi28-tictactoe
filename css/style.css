@@ -129,3 +129,33 @@ h1#title {
   color: red;
   font-size: 4vmin;
 }
+
+.waiting {
+  grid-column: span 3;
+  grid-row: span 3;
+  /* background-color: red; */
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.waitng span {
+  font-size: 4vmin;
+  margin-top: 1em;
+}
+
+.loader {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 50%;
+  height: 50%;
+  /* margin: auto; */
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

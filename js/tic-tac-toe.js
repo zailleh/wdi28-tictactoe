@@ -12,7 +12,6 @@ let naughtsScore = $( '<span id="naughtsScore">' ).html(`${CrossIco}: ${score.cr
 let playAgain = '<button class="menubutton" value="0">Play Again!</button>'
 let aiEnabled = true;
 let aiTurn = false;
-let fireInfo;
 let multiPlayer = false;
 
 const getScoreFromCookies = function () {
@@ -80,8 +79,8 @@ const makeGameBoard = function ( players ) { // populate array of slots in gameD
     aiEnabled = false;
   } else if ( +players === 3 ) {
     aiEnabled = false;
-    fireInfo = initFirebase();
-    findGame();
+    console.log( initFirebase() );
+    // findGame();
   } else if ( +players === 1 ) {
     aiEnabled = true;
   } else {
