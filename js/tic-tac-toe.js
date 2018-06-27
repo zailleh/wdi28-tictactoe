@@ -1,14 +1,14 @@
-const gameData = []; //empty array of our slots
-let player = "Naught";
+let gameData = []; //empty array of our slots
+let player = "Nought";
 let score = {
-  naught: 0,
+  Nought: 0,
   cross: 0
 }
 
-let NaughtIco = '<i class="far fa-circle"></i>'
+let NoughtIco = '<i class="far fa-circle"></i>'
 let CrossIco = '<i class="fas fa-times"></i>'
-let crossScore = $( '<span id="crossScore">' ).html(`${NaughtIco}: ${score.naught}`).addClass("score");
-let naughtsScore = $( '<span id="naughtsScore">' ).html(`${CrossIco}: ${score.cross}`).addClass("score");
+let crossScore = $( '<span id="crossScore">' ).html(`${NoughtIco}: ${score.Nought}`).addClass("score");
+let NoughtsScore = $( '<span id="NoughtsScore">' ).html(`${CrossIco}: ${score.cross}`).addClass("score");
 let playAgain = '<button class="menubutton" value="0">Play Again!</button>'
 let aiEnabled = true;
 let aiTurn = false;
@@ -19,15 +19,15 @@ const getScoreFromCookies = function () {
   allCookies = allCookies.split(';');
 
   let scoreCookies = {
-    naught: 0,
+    Nought: 0,
     cross: 0
   };
 
   for( let i = 0; i < allCookies.length; i++ ){
     let thisCookie = allCookies[i].split('=')
     switch (thisCookie[0].trim()) {
-      case 'naught':
-        scoreCookies.naught = isNaN(+thisCookie[1]) ? 0 : +thisCookie[1];
+      case 'Nought':
+        scoreCookies.Nought = isNaN(+thisCookie[1]) ? 0 : +thisCookie[1];
         break;
       case 'cross':
         scoreCookies.cross = isNaN(+thisCookie[1]) ? 0 : +thisCookie[1];
@@ -38,26 +38,31 @@ const getScoreFromCookies = function () {
   return scoreCookies;
 }
 
-const updateScoreDisplay = function () {
+const updateScoreDisplay = function ( score ) {
   $( '.score' ).remove();
 
-  crossScore = $( '<span id="crossScore">' ).html(`${NaughtIco}: ${score.naught}`).addClass("score");
-  naughtsScore = $( '<span id="naughtsScore">' ).html(`${CrossIco}: ${score.cross}`).addClass("score");
+  crossScore = $( '<span id="crossScore">' ).html(`${NoughtIco}: ${score.Nought}`).addClass("score");
+  NoughtsScore = $( '<span id="NoughtsScore">' ).html(`${CrossIco}: ${score.cross}`).addClass("score");
 
-  $( '#title' ).append( crossScore ).prepend( naughtsScore );
+  $( '#title' ).append( crossScore ).prepend( NoughtsScore );
 }
 
 const setScoreInCookies = function () {
-  document.cookie = `naught=${ score.naught }`
+  document.cookie = `Nought=${ score.Nought }`
   document.cookie = `cross=${ score.cross }`
 }
 
-const makeGameBoard = function ( players ) { // populate array of slots in gameData and create DOM.
+const updateGameBoard = function ( element, player ) {
+  switch (player) {
+    case 'Nought':
+        $( element ).append( $( NoughtIco ) )
+      break;
+    default:
+      $( element ).append( $( CrossIco ) )
+  }
+}
 
-  // load scores from cookies;
-  score = getScoreFromCookies();
-  updateScoreDisplay();
-
+const resetGameBoard = function () {
   // reset gamedata and gameboard
   gameData.length = 0;
   $('#gameboard').html("");
@@ -67,19 +72,33 @@ const makeGameBoard = function ( players ) { // populate array of slots in gameD
     gameData.push([]);
     for (let y = 0; y < 3; y++ ) {
       let id = x + "," + y
-      gameData[x].push(null);
+      gameData[x].push("empty");
       $('#gameboard').append( $( '<div class="slot">' ).attr( 'data-id', id ) );
     }
   }
+}
 
-  $( '.slot' ).on( 'click', takeSlot );
+const addClickEvents = function ( clickFunction ) {
+  $( '.slot' ).on( 'click', clickFunction );
+}
+
+const makeGameBoard = function ( players ) { // populate array of slots in gameData and create DOM.
+
+  // load scores from cookies;
+  score = getScoreFromCookies();
+  updateScoreDisplay(score);
+
+  // reset gamedata and gameboard
+  resetGameBoard()
+
+  addClickEvents( takeSlot );
 
   // set global players value
   if ( +players === 2 ) {
     aiEnabled = false;
   } else if ( +players === 3 ) {
     aiEnabled = false;
-    console.log( initFirebase() );
+    // console.log( initFirebase() );
     // findGame();
   } else if ( +players === 1 ) {
     aiEnabled = true;
@@ -117,13 +136,7 @@ const takeSlot = function () {
   let id = $( this ).attr('data-id').split(',');
   gameData[+id[0]][+id[1]] = player;
 
-  switch (player) {
-    case 'Naught':
-        $( this ).append( $( NaughtIco ) )
-      break;
-    default:
-      $( this ).append( $( CrossIco ) )
-  }
+  updateGameBoard( this, player );
 
   // remove click event from this slot so it can't be clicked again
   $( this ).off( 'click', takeSlot );
@@ -143,10 +156,10 @@ const takeSlot = function () {
 }// take a slot (triggered by click)
 
 const switchPlayers = function () {
-  if (player === 'Naught') {
+  if (player === 'Nought') {
     player = 'Cross';
   } else {
-    player = 'Naught';
+    player = 'Nought';
   }
 } // switch between players
 
@@ -159,7 +172,7 @@ const callAI = function () {
         // check to see if AI can win with this move
         // check to see if player will win next move
         if ( !unbeatableAI( 'Cross' ) ) {
-          if ( !unbeatableAI( 'Naught' ) ) {
+          if ( !unbeatableAI( 'Nought' ) ) {
             pickRandomSlot();
         }
       }
@@ -177,7 +190,7 @@ const pickRandomSlot = function () {
 
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
-      if (gameData[x][y] === null) {
+      if (gameData[x][y] === "empty") {
         emptySlots.push({
           x: x,
           y: y
@@ -204,7 +217,7 @@ const checkYforWin = function ( plyr ) {
     for ( let x = 0; x < 3; x++) {
       if ( gameData[x][y] === plyr ) {
         winSlots.push({ x:x, y:y })
-      } else if ( gameData[x][y] === null ) {
+      } else if ( gameData[x][y] === "empty" ) {
         emptySlots.push({ x:x, y:y })
       }
     }
@@ -236,7 +249,7 @@ const checkXforWin = function ( plyr ) {
     for ( let y = 0; y < 3; y++ ) {
       if (gameData[x][y] === plyr) {
         winSlots.push({ x:x, y:y });
-      } else if ( gameData[x][y] === null ) {
+      } else if ( gameData[x][y] === "empty" ) {
         emptySlots.push({ x:x ,y:y });
       }
     }
@@ -267,7 +280,7 @@ const diag1ForWin = function ( plyr ) {
   for ( let xy = 0; xy < 3; xy++ ) {
     if (gameData[xy][xy] === plyr) {
       winSlots.push({x:xy,y:xy})
-    } else if ( gameData[xy][xy] === null ) {
+    } else if ( gameData[xy][xy] === "empty" ) {
       emptySlots.push({x:xy,y:xy})
     }
   }
@@ -294,7 +307,7 @@ const diag2ForWin = function ( plyr ) {
     let y = 2 - x;
     if (gameData[x][y] === plyr) {
       winSlots.push({x:x,y:y})
-    } else if ( gameData[x][y] === null ) {
+    } else if ( gameData[x][y] === "empty" ) {
       emptySlots.push({x:x,y:y})
     }
   }
@@ -347,13 +360,13 @@ const unbeatableAI = function ( plyr ) {
 } // main guts of AI function
 
 const checkForWin = function () {
-  // debugger;
+  debugger;
 
   let anyFreeSlots = false;
   // check if  all slots taken
   for (let x = 0; x < 3; x++) {
     for ( let y = 0; y < 3; y++ ) {
-      if ( gameData[x][y] === null ) {
+      if ( gameData[x][y] === "empty" ) {
         anyFreeSlots = true;
         break; // stop loop if there's at least one empty slot
       }
