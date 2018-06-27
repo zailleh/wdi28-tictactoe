@@ -13,6 +13,18 @@ let playAgain = '<button class="menubutton" value="0">Play Again!</button>'
 let aiEnabled = true;
 let aiTurn = false;
 
+const initFirebase = function () {
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyCFBL_M--2z9AFuBlI3NDQ3zELtDEqhHlU",
+    authDomain: "wdi28-tic-tac-toe.firebaseapp.com",
+    databaseURL: "https://wdi28-tic-tac-toe.firebaseio.com",
+    projectId: "wdi28-tic-tac-toe",
+    storageBucket: "",
+    messagingSenderId: "289577692536"
+  };
+  firebase.initializeApp(config);
+}
 
 const getScoreFromCookies = function () {
   let allCookies = document.cookie;
@@ -77,8 +89,12 @@ const makeGameBoard = function ( players ) { // populate array of slots in gameD
   // set global players value
   if ( +players === 2 ) {
     aiEnabled = false;
+  } else if ( +players === 3 ) {
+    aiEnabled = false;
+    initFirebase();
   } else {
     aiEnabled = true;
+
   }
 }
 
