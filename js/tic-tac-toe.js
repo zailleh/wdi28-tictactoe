@@ -1,25 +1,36 @@
 const gameData = []; //empty array of our slots
 let player = "Naught";
+let score = {
+  naught: 0,
+  cross: 0
+}
 
 let NaughtIco = '<i class="far fa-circle"></i>'
 let CrossIco = '<i class="fas fa-times"></i>'
+let crossScore = $( '<span id="crossScore">' ).html(`${NaughtIco}: ${score.naught}`).addClass("score");
+let naughtsScore = $( '<span id="naughtsScore">' ).html(`${CrossIco}: ${score.cross}`).addClass("score");
 let playAgain = '<button class="menubutton" value="0">Play Again!</button>'
 let aiEnabled = true;
 let aiTurn = false;
-let score;
+
 
 const getScoreFromCookies = function () {
-  allCookies = document.cookie;
+  let allCookies = document.cookie;
   allCookies = allCookies.split(';');
-  scoreCookies = {};
+
+  let scoreCookies = {
+    naught: 0,
+    cross: 0
+  };
+
   for( let i = 0; i < allCookies.length; i++ ){
     let thisCookie = allCookies[i].split('=')
-    switch (thisCookie[0]) {
+    switch (thisCookie[0].trim()) {
       case 'naught':
-        scoreCookies.naught = +thisCookie[0];
+        scoreCookies.naught = isNaN(+thisCookie[1]) ? 0 : +thisCookie[1];
         break;
       case 'cross':
-        scoreCookies.cross = +thisCookie[0];
+        scoreCookies.cross = isNaN(+thisCookie[1]) ? 0 : +thisCookie[1];
         break;
     }
   }
@@ -27,18 +38,29 @@ const getScoreFromCookies = function () {
   return scoreCookies;
 }
 
+const updateScoreDisplay = function () {
+  $( '.score' ).remove();
+
+  crossScore = $( '<span id="crossScore">' ).html(`${NaughtIco}: ${score.naught}`).addClass("score");
+  naughtsScore = $( '<span id="naughtsScore">' ).html(`${CrossIco}: ${score.cross}`).addClass("score");
+
+  $( '#title' ).append( crossScore ).prepend( naughtsScore );
+}
+
 const setScoreInCookies = function () {
-  cookiesString = `naught=${ score.naught }; cross=${ score.cross }`;
-  document.cookie = cookiesString;
+  document.cookie = `naught=${ score.naught }`
+  document.cookie = `cross=${ score.cross }`
 }
 
 const makeGameBoard = function ( players ) { // populate array of slots in gameData and create DOM.
-  // reset gamedata and gameboard
-  gameData.length = 0;
-  $('#gameboard').html("");
 
   // load scores from cookies;
   score = getScoreFromCookies();
+  updateScoreDisplay();
+
+  // reset gamedata and gameboard
+  gameData.length = 0;
+  $('#gameboard').html("");
 
   // populate gamedata and gameboard
   for (let x = 0; x < 3; x++ ) {
@@ -63,15 +85,17 @@ const makeGameBoard = function ( players ) { // populate array of slots in gameD
 const winDisplay = function ( winInfo ) { // display the win diaglog
   const replayBtn = $( playAgain );
 
-  // update scores & save to cookies
-  score[ player.toLowerCase() ]++;
-  setScoreInCookies( score );
+
 
   if ( winInfo.tie !== undefined ) {
     // it's a draw!
     $( '#gameboard' ).append( $( '<div>').addClass('winmsg').html(`It's a draw!`).append( replayBtn ) );
     replayBtn.on( 'click', makeGameBoard)
   } else {
+    // update scores & save to cookies
+    score[ player.toLowerCase() ]++;
+    setScoreInCookies( score );
+
     const slots = winInfo.slots;
     for ( let slot of slots ) {
       const slotID = slot.x + "," + slot.y;

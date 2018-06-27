@@ -51,11 +51,16 @@ body {
 }
 
 h1#title {
-  font-size: 6vmax;
+  font-size: 7vmin;
   margin: .125em;
   color: #FFF;
   text-shadow: .1em .1em .1em rgba(0,0,0,0.25);
   min-width: 341px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  max-width: 640px;
+  width: calc( 100vmin - 11vmax );
 }
 
 .slot {
@@ -118,4 +123,9 @@ h1#title {
 
 .menubutton:nth-child(2){
   background-color: blue;
+}
+
+.score{
+  color: red;
+  font-size: 4vmin;
 }
