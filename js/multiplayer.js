@@ -219,9 +219,9 @@ const finishTurn = function () {
   let winInfo = checkForWin() //ref: tic-tac-toe.js
   if ( winInfo.win === true ) {
 
-    if ( multiIsMyTurn() ) {
+    if ( multiIsMyTurn() && winInfo.tie === undefined) {
       updateWinCount( true ); // TODO: is defined but does nothing;
-    } else {
+    } else if ( winInfo.tie === undefined ) {
       updateWinCount( false );
     }
 
@@ -232,21 +232,65 @@ const finishTurn = function () {
   switchPlayers(); // ref: tic-tac-toe.js
 }
 
-const updateWinCount = function ( win ){
-  // get current player ID's win/loss stats
-
-  // put this in callback function
-  if ( win === true ) {
-    // player.win ++
-  } else {
-    // player.loss ++
+const getPlayerScores = function( snapshot ) {
+  const scores = {
+    wins: 0,
+    loss: 0,
   }
 
-  // update player stats
+  scoresData = snapshot.val();
 
+  console.log(scoresData);
+  if (scoresData === undefined || scoresData === null ) {
+    // do nothing
+  } else {
+    scores.win  = +scoresData.wins;
+    scores.loss = +scoresData.loss;
+  }
+
+  return scores
+}
+
+const updateWinCount = function ( win ) {
+  // get current player ID's win/loss stats
+  const player = firebase.database().ref("players/" + myUID)
+  console.log('updating win count, is win:',win);
+  player.once('value', function( snapshot ) {
+    const scores = getPlayerScores( snapshot )
+
+    // put this in callback function
+    if ( win === true ) {
+      scores.win ++; // TODO: account for NaN here.
+    } else {
+      scores.loss ++; // TODO: account for NaN here.
+    }
+
+    player.update(scores);
+  });
 };
 
-const updateMultiWinDisplay = function (){};
+const updateMultiWinDisplay = function ( players ){
+
+  for(let i = 0; i < players.length; i++ ) {
+    const player = firebase.database().ref("players/" + players[i])
+
+    player.once('value', function( snapshot ) {
+      const scores = getPlayerScores( snapshot )
+
+      $( '.score' ).remove();
+      let $title = $( '#title' );
+
+      if ( playerID === 1 ) {
+        score.cross = scores.win
+      } else if ( playerID === 0 ) {
+        score.nought = scores.win
+      }
+
+      updateScoreDisplay( score );
+
+    });
+  }
+};
 
 const receiveRemoteGameData = function ( snapshot ) {
   //if foo then finishturn,
@@ -291,7 +335,7 @@ const startGame = function () {
   game.once('value', function(snapshot) {
     _onlineGame = snapshot.val()
     player = "Nought"
-    // updateMultiWinDisplay(); // TODO: is defined but does nothing;
+
 
     resetGameBoard(); // ref: tic-tac-toe.js
 
@@ -300,6 +344,8 @@ const startGame = function () {
     const onlinePlayers = Object.keys(_onlineGame.players);
     _onlinePlayers.Nought = onlinePlayers[0];
     _onlinePlayers.Cross = onlinePlayers[1];
+
+    updateMultiWinDisplay(onlinePlayers); // TODO: is defined but does nothing;
 
     // select player to track
     let trackPlayer = onlinePlayers[0];
