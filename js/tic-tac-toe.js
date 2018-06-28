@@ -1,7 +1,7 @@
 let gameData = []; //empty array of our slots
 let player = "Nought";
 let score = {
-  Nought: 0,
+  nought: 0,
   cross: 0
 }
 
@@ -19,15 +19,15 @@ const getScoreFromCookies = function () {
   allCookies = allCookies.split(';');
 
   let scoreCookies = {
-    Nought: 0,
+    nought: 0,
     cross: 0
   };
 
   for( let i = 0; i < allCookies.length; i++ ){
     let thisCookie = allCookies[i].split('=')
     switch (thisCookie[0].trim()) {
-      case 'Nought':
-        scoreCookies.Nought = isNaN(+thisCookie[1]) ? 0 : +thisCookie[1];
+      case 'nought':
+        scoreCookies.nought = isNaN(+thisCookie[1]) ? 0 : +thisCookie[1];
         break;
       case 'cross':
         scoreCookies.cross = isNaN(+thisCookie[1]) ? 0 : +thisCookie[1];
@@ -41,18 +41,19 @@ const getScoreFromCookies = function () {
 const updateScoreDisplay = function ( score ) {
   $( '.score' ).remove();
 
-  crossScore = $( '<span id="crossScore">' ).html(`${NoughtIco}: ${score.Nought}`).addClass("score");
+  crossScore = $( '<span id="crossScore">' ).html(`${NoughtIco}: ${score.nought}`).addClass("score");
   NoughtsScore = $( '<span id="NoughtsScore">' ).html(`${CrossIco}: ${score.cross}`).addClass("score");
 
   $( '#title' ).append( crossScore ).prepend( NoughtsScore );
 }
 
-const setScoreInCookies = function () {
-  document.cookie = `Nought=${ score.Nought }`
+const setScoreInCookies = function ( score ) {
+  document.cookie = `nought=${ score.nought }`
   document.cookie = `cross=${ score.cross }`
 }
 
 const updateGameBoard = function ( element, player ) {
+
   switch (player) {
     case 'Nought':
         $( element ).append( $( NoughtIco ) )
@@ -66,6 +67,7 @@ const resetGameBoard = function () {
   // reset gamedata and gameboard
   gameData.length = 0;
   $('#gameboard').html("");
+  player = "Nought"
 
   // populate gamedata and gameboard
   for (let x = 0; x < 3; x++ ) {
@@ -113,12 +115,12 @@ const winDisplay = function ( winInfo, replayFn ) { // display the win diaglog
   if ( winInfo.tie !== undefined ) {
     // it's a draw!
     $( '#gameboard' ).append( $( '<div>').addClass('winmsg').html(`It's a draw!`).append( replayBtn ) );
-
+    replayBtn.on( 'click', replayFn)
   } else {
     // update scores & save to cookies
     score[ player.toLowerCase() ]++;
     setScoreInCookies( score );
-
+    updateScoreDisplay( score );
     const slots = winInfo.slots;
     for ( let slot of slots ) {
       const slotID = slot.x + "," + slot.y;
@@ -131,13 +133,17 @@ const winDisplay = function ( winInfo, replayFn ) { // display the win diaglog
 }
 
 const takeSlot = function () {
+  if (aiEnabled === true && aiTurn === true) {
+    return //its not your turn!!
+  }
+
   let id = $( this ).attr('data-id').split(',');
-  gameData[+id[0]][+id[1]] = player;
+  updateGameData( id, player )
 
   updateGameBoard( this, player );
 
   // remove click event from this slot so it can't be clicked again
-  $( this ).off( 'click', takeSlot );
+  removeClickEvent( this );
 
   // Check for win;
   let winInfo = checkForWin()
@@ -153,6 +159,30 @@ const takeSlot = function () {
   callAI();
 }// take a slot (triggered by click)
 
+const aiClickTrigger = function ( win ) { // trigger click event for AI move
+  const slotID = win.aiSlots[0].x + ',' + win.aiSlots[0].y;
+  const slot = $( `div[data-id="${ slotID }"]` );
+
+  removeClickEvent( slot );
+  updateGameData( slotID.split(','), player )
+  updateGameBoard( slot, player );
+  aiTurn = false;
+
+  let winInfo = checkForWin()
+  if ( winInfo.win === true ) {
+    winDisplay( winInfo, makeGameBoard );
+    return;
+  }
+
+  switchPlayers();
+
+
+};
+
+const removeClickEvent = function ( ele ) {
+  $( ele ).off( 'click', takeSlot );
+}
+
 const switchPlayers = function () {
   if (player === 'Nought') {
     player = 'Cross';
@@ -162,9 +192,7 @@ const switchPlayers = function () {
 } // switch between players
 
 const callAI = function () {
-  if ( aiEnabled === true && aiTurn === true ) {
-    aiTurn = false;
-  } else if ( aiEnabled === true && aiTurn === false ) {
+  if ( aiEnabled === true && aiTurn === false ) {
     aiTurn = true;
     setTimeout ( function () {
         // check to see if AI can win with this move
@@ -319,10 +347,9 @@ const diag2ForWin = function ( plyr ) {
   return {win: win, slots: winSlots, aiSlots: aiSlots};
 }; // check other diagonal for win
 
-const aiClickTrigger = function ( win ) {
-  slotID = win.aiSlots[0].x + ',' + win.aiSlots[0].y;
-  $( `div[data-id="${ slotID }"]` ).trigger( 'click' )
-}; // trigger click event for AI move
+const updateGameData = function ( id, player ) {
+  gameData[+id[0]][+id[1]] = player;
+}
 
 const getRandomInt = function( max ) {
   return Math.floor(Math.random() * Math.floor(max));
