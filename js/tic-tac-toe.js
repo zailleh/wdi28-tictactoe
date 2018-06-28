@@ -38,11 +38,11 @@ const getScoreFromCookies = function () {
   return scoreCookies;
 }
 
-const updateScoreDisplay = function ( score ) {
+const updateScoreDisplay = function ( data ) {
   $( '.score' ).remove();
-
-  crossScore = $( '<span id="crossScore">' ).html(`${NoughtIco}: ${score.nought}`).addClass("score");
-  NoughtsScore = $( '<span id="NoughtsScore">' ).html(`${CrossIco}: ${score.cross}`).addClass("score");
+  console.log(data);
+  crossScore = $( '<span id="crossScore">' ).html(`${NoughtIco}: ${data.nought}`).addClass("score");
+  NoughtsScore = $( '<span id="NoughtsScore">' ).html(`${CrossIco}: ${data.cross}`).addClass("score");
 
   $( '#title' ).append( crossScore ).prepend( NoughtsScore );
 }

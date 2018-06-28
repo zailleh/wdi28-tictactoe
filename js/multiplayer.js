@@ -234,21 +234,25 @@ const finishTurn = function () {
 
 const getPlayerScores = function( snapshot ) {
   const scores = {
-    wins: 0,
+    win: 0,
     loss: 0,
   }
 
   scoresData = snapshot.val();
 
-  console.log(scoresData);
+  // console.log(scoresData);
   if (scoresData === undefined || scoresData === null ) {
     // do nothing
   } else {
-    scores.win  = +scoresData.wins;
+    scores.win  = +scoresData.win;
     scores.loss = +scoresData.loss;
   }
 
   return scores
+}
+
+const isValidNumber = function(num) {
+  return ( num !== undefined && !Number.isNaN(num) && +num === num );
 }
 
 const updateWinCount = function ( win ) {
@@ -260,11 +264,27 @@ const updateWinCount = function ( win ) {
 
     // put this in callback function
     if ( win === true ) {
-      scores.win ++; // TODO: account for NaN here.
+      if ( isValidNumber( scores.win ) ) {
+        +scores.win++;
+      } else {
+        scores.win = 1;
+      }
+      if ( !isValidNumber( scores.loss ) ) {
+        scores.loss = 0;
+      }
     } else {
-      scores.loss ++; // TODO: account for NaN here.
+      if ( isValidNumber( scores.loss ) ) {
+        +scores.loss++;
+      } else {
+        scores.loss = 1;
+      }
+
+      if ( !isValidNumber( scores.win ) ) {
+        scores.win = 0;
+      }
     }
 
+    console.log(scores);
     player.update(scores);
   });
 };
@@ -273,20 +293,20 @@ const updateMultiWinDisplay = function ( players ){
 
   for(let i = 0; i < players.length; i++ ) {
     const player = firebase.database().ref("players/" + players[i])
-
+    const playerNum = i;
     player.once('value', function( snapshot ) {
       const scores = getPlayerScores( snapshot )
 
       $( '.score' ).remove();
       let $title = $( '#title' );
-
-      if ( playerID === 1 ) {
+      console.log(scores);
+      if ( playerNum === 1 ) {
         score.cross = scores.win
-      } else if ( playerID === 0 ) {
+      } else if ( playerNum === 0 ) {
         score.nought = scores.win
       }
 
-      updateScoreDisplay( score );
+      updateScoreDisplay( score ); //ref: tic-tac-toe.js
 
     });
   }
@@ -345,7 +365,7 @@ const startGame = function () {
     _onlinePlayers.Nought = onlinePlayers[0];
     _onlinePlayers.Cross = onlinePlayers[1];
 
-    updateMultiWinDisplay(onlinePlayers); // TODO: is defined but does nothing;
+    updateMultiWinDisplay(onlinePlayers);
 
     // select player to track
     let trackPlayer = onlinePlayers[0];

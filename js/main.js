@@ -3,6 +3,7 @@ let menu;
 
 const bootToMenu = function() {
   $('#gameboard').html(menu); //reset gameboard
+  $( '.score' ).remove();
   addMenuListeners();
 }
 
