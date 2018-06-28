@@ -56,6 +56,7 @@ const addMeToPlayers = function () {
 
 const waitForPlayers = function ( gameID ) {
   _gameID = gameID;
+  addMeToPlayers();
   let gameboard = $('#gameboard').html("");
   console.log('gameid:',_gameID, 'waiting for players...');
 
@@ -69,11 +70,10 @@ const waitForPlayers = function ( gameID ) {
   //now we monitor the game for additional players to join...
   let players = firebase.database().ref('/games/' + _gameID + '/players');
 
-
   players.on('value', function(snapshot) {
     let onlinePlayers = snapshot.val()
     if ( onlinePlayers === null && onlinePlayers === undefined ) {
-      return
+      return;
     }
 
     onlinePlayers = Object.keys( onlinePlayers );
@@ -261,6 +261,8 @@ const receiveRemoteGameData = function ( snapshot ) {
 }
 
 const resetOnlineGame = function() {
+  firebase.database().ref('/games/' + _gameID).off()
+
   updates['/games/' + _gameID] = {
     players: null,
     status: 0, // waiting for players
@@ -288,6 +290,7 @@ const startGame = function () {
   game = firebase.database().ref('/games/' + _gameID);
   game.once('value', function(snapshot) {
     _onlineGame = snapshot.val()
+    player = "Nought"
     // updateMultiWinDisplay(); // TODO: is defined but does nothing;
 
     resetGameBoard(); // ref: tic-tac-toe.js
