@@ -2,8 +2,9 @@
 let menu;
 
 const bootToMenu = function() {
-  $('#gameboard').html(menu); //reset gameboard
+  $( '#gameboard' ).html(menu); //reset gameboard
   $( '.score' ).remove();
+  $( '#statusDisplay' ).html("")
   addMenuListeners();
 }
 

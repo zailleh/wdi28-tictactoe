@@ -14,6 +14,29 @@ let aiEnabled = true;
 let aiTurn = false;
 let multiPlayer = false;
 
+const displayMyPlayer = function( player ) {
+  // display you are X
+  $( '#yourPlayer' ).remove();
+  const $playerInfo = $( '<span>' ).text("You are playing as " + player).attr('id',"yourPlayer")
+  $( '#statusDisplay' ).append( $playerInfo )
+}
+
+const displayTurn = function( turn ) {
+  $( '#turnStatus' ).remove();
+  const $turnInfo = $( '<span>' ).text(turn +"'s turn.").attr('id',"turnStatus")
+  $( '#statusDisplay' ).append( $turnInfo )
+}
+
+// const animFadeFromBlue = function ( element, duration ) {
+//
+//   $( element ).
+//   setInterval( function() {
+//
+//
+//   }, 10 )
+//
+// }
+
 const getScoreFromCookies = function () {
   let allCookies = document.cookie;
   allCookies = allCookies.split(';');
@@ -85,13 +108,15 @@ const addClickEvents = function ( clickFunction ) {
 }
 
 const makeGameBoard = function ( players ) { // populate array of slots in gameData and create DOM.
+  // reset gamedata and gameboard
+  resetGameBoard()
 
   // load scores from cookies;
   score = getScoreFromCookies();
-  updateScoreDisplay(score);
 
-  // reset gamedata and gameboard
-  resetGameBoard()
+  updateScoreDisplay(score);
+  displayTurn( player );
+
 
   addClickEvents( takeSlot );
 
@@ -104,6 +129,7 @@ const makeGameBoard = function ( players ) { // populate array of slots in gameD
     // findGame();
   } else if ( +players === 1 ) {
     aiEnabled = true;
+    displayMyPlayer( player )
   } else {
     // do nothing, keep default / current values (for replay)
   }
@@ -189,6 +215,8 @@ const switchPlayers = function () {
   } else {
     player = 'Nought';
   }
+
+  displayTurn( player );
 } // switch between players
 
 const callAI = function () {

@@ -8,6 +8,8 @@ let _onlineGame;
 let _gameID;
 let myUID;
 
+
+
 const startMulti = function() {
   // TODO: loading screen
   if (firebase.apps.length === 0) {
@@ -349,6 +351,14 @@ const updateRemoteGameData = function ( gameData, slotID ) {
   firebase.database().ref().update(updates);
 }
 
+const whichPlayer = function ( userID ) {
+  if ( _onlinePlayers.Cross === userID ) {
+    return "Cross";
+  } else if ( _onlinePlayers.Nought === userID ) {
+    return "Nought";
+  }
+}
+
 const startGame = function () {
 
   game = firebase.database().ref('/games/' + _gameID);
@@ -367,11 +377,15 @@ const startGame = function () {
 
     updateMultiWinDisplay(onlinePlayers);
 
+
     // select player to track
     let trackPlayer = onlinePlayers[0];
     if (onlinePlayers[0] === myUID) {
       trackPlayer = onlinePlayers[1];
     }
+
+    displayTurn( player );
+    displayMyPlayer( whichPlayer( myUID ) );
 
     console.log('tracking player',trackPlayer);
     firebase.database().ref('/players/' + trackPlayer + '/status').on('value', function (snapshot){
