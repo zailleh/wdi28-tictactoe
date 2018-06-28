@@ -107,15 +107,13 @@ const makeGameBoard = function ( players ) { // populate array of slots in gameD
   }
 }
 
-const winDisplay = function ( winInfo ) { // display the win diaglog
+const winDisplay = function ( winInfo, replayFn ) { // display the win diaglog
   const replayBtn = $( playAgain );
-
-
 
   if ( winInfo.tie !== undefined ) {
     // it's a draw!
     $( '#gameboard' ).append( $( '<div>').addClass('winmsg').html(`It's a draw!`).append( replayBtn ) );
-    replayBtn.on( 'click', makeGameBoard)
+
   } else {
     // update scores & save to cookies
     score[ player.toLowerCase() ]++;
@@ -128,7 +126,7 @@ const winDisplay = function ( winInfo ) { // display the win diaglog
     }
 
     $( '#gameboard' ).append( $( '<div>').addClass('winmsg').html(`${ player } wins!`).append( replayBtn ) );
-    replayBtn.on( 'click', makeGameBoard)
+    replayBtn.on( 'click', replayFn)
   }
 }
 
@@ -144,7 +142,7 @@ const takeSlot = function () {
   // Check for win;
   let winInfo = checkForWin()
   if ( winInfo.win === true ) {
-    winDisplay( winInfo );
+    winDisplay( winInfo, makeGameBoard );
     return;
   }
 
@@ -360,7 +358,7 @@ const unbeatableAI = function ( plyr ) {
 } // main guts of AI function
 
 const checkForWin = function () {
-  debugger;
+  // debugger;
 
   let anyFreeSlots = false;
   // check if  all slots taken

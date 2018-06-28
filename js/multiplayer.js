@@ -10,34 +10,54 @@ let myUID;
 
 const startMulti = function() {
   // TODO: loading screen
-  initFirebase();
+  if (firebase.apps.length === 0) {
+    initFirebase();
+  }
+
+  console.log('auth with google');
   authWithGoogle().then(
     function(result) {
 
-      myUID = firebase.auth().currentUser.uid
-      myUID = $( '#playerID' ).val()
+      myUID = firebase.auth().currentUser.uid;
+      myUID = $( '#playerID' ).val();
+      setPlayerStatus( 'Online' );
+      // set me offline when I go offline.
+      firebase.database().ref('/players/' + myUID + '/status').onDisconnect().set("Offline");
 
+      console.log('finding game');
       findGame(myUID).then(
         function(dbGames) {
 
           games = dbGames.val();
           if ( games === null || games === undefined ) {
+            console.log('creating new game');
             createNewGame().then(
+
               waitForPlayers( _gameID )
             );
           } else {
             games = Object.keys(games)[0];
-            joinGame(games);
+            waitForPlayers(games);
           }
         });
     }).catch(function(error) {
-      return error.code
+      console.log(error.code);
     });
+
+
+
+
+
+}
+
+const addMeToPlayers = function () {
+  firebase.database().ref('/games/' + _gameID + "/players/" + myUID).set(true);
 }
 
 const waitForPlayers = function ( gameID ) {
+  _gameID = gameID;
   let gameboard = $('#gameboard').html("");
-  console.log('gameid:',gameID, 'waiting for players...');
+  console.log('gameid:',_gameID, 'waiting for players...');
 
   let waiting = $( '<div>' )
                     .addClass('waiting')
@@ -47,16 +67,47 @@ const waitForPlayers = function ( gameID ) {
   gameboard.append( waiting );
 
   //now we monitor the game for additional players to join...
+  let players = firebase.database().ref('/games/' + _gameID + '/players');
 
-  let players = firebase.database().ref('/games/' + gameID + '/players');
 
   players.on('value', function(snapshot) {
-    const playersJoined = snapshot.val()
-    if ( playersJoined.length === 2 ) {
-      players.off();
-      firebase.database().ref('/waitingGames/' + gameID).remove().then(joinGame( gameID ));
+    let onlinePlayers = snapshot.val()
+    if ( onlinePlayers === null && onlinePlayers === undefined ) {
+      return
+    }
+
+    onlinePlayers = Object.keys( onlinePlayers );
+
+    if ( onlinePlayers.includes( myUID ) && onlinePlayers.length == 2 ) {
+      // start the games
+      players.off(); // turns off the listener for players
+      firebase.database().ref('/waitingGames/' + _gameID).remove().then(startGame());
+    } else if ( !onlinePlayers.includes( myUID ) ) {
+      // add my uid
+      addMeToPlayers();
     }
   });
+}
+
+const removeGameFromFirebase = function () {
+
+  const myPlayerProfile = firebase.database().ref('/players/' + myUID + '/games')
+
+  myPlayerProfile.once('value', function( snapshot ) {
+
+    const games = snapshot.val();
+    if ( games !== null && games !== undefined ) {
+      const gameIDs = Object.keys( games );
+      let update = {};
+
+      for (let i = 0; i < gameIDs.length; i++ ) {
+        update["/games/" + gameIDs[i]] = null;
+      }
+
+      firebase.database().ref().update(update)
+    }
+  });
+
 }
 
 const initFirebase = function() {
@@ -88,7 +139,9 @@ const createNewGame = function() {
 
   let updates = {};
   updates['/games/' + newGameKey] = {
-    players: [myUID],
+    players: {
+        [myUID]: true
+      },
     status: 0, // waiting for players
     gameData: [["empty","empty","empty"],
                ["empty","empty","empty"],
@@ -98,32 +151,46 @@ const createNewGame = function() {
     players: [myUID],
     status: 0, // waiting for players
   }
-  updates['/players/' + myUID + "/" + newGameKey] = true;
-
+  updates['/players/' + myUID + "/games/" + newGameKey] = true;
+  updates['players/' + myUID + "/status"] = 'Online';
   _gameID = newGameKey;
 
   return firebase.database().ref().update(updates);
 }
 
-const joinGame = function( gameID ) {
-  console.log("joining game", gameID);
-  //return "Joining Game"
+const setPlayerStatus = function ( status ) {
+  firebase.database().ref('players/' + myUID + "/status").set(status);
+}
 
-  firebase.database().ref('/games/' + gameID).once('value').then(function ( data ) {
-    onlineGame = data.val();
-    _gameID = gameID;
-    if ( onlineGame.players.includes( myUID ) ) {
-      startGame( onlineGame );
-    } else {
-      onlineGame.players.push( myUID );
-      firebase.database().ref('/games/' + gameID).update(onlineGame).then( startGame( onlineGame ) );
-    }
-  });
+// const joinGame = function( gameID ) {
+//   console.log("joining game", gameID);
+//   //return "Joining Game"
+//
+//   firebase.database().ref('/games/' + gameID).once('value').then(function ( data ) {
+//     onlineGame = data.val();
+//     _gameID = gameID;
+//     onlinePlayers = Object.keys( onlineGame.players );
+//     if ( onlinePlayers.includes( myUID ) ) {
+//       setPlayerStatus( 'Online' );
+//       console.log(onlineGame);
+//       startGame( onlineGame );
+//     } else {
+//       onlineGame.players[ myUID ] = true;
+//       firebase.database().ref('players/' + myUID + "/games/" + gameID).set(true);
+//       setPlayerStatus( 'Online' );
+//       console.log(onlineGame);
+//       firebase.database().ref('/games/' + gameID).update(onlineGame).then( startGame( onlineGame ) );
+//     }
+//   });
+// }
+
+const multiIsMyTurn = function () {
+  return _onlinePlayers[player] === myUID
 }
 
 const takeSlotMulti = function () { // take a slot (triggered by click)
 
-  if ( _onlinePlayers[player] === myUID ) {
+  if ( multiIsMyTurn() ) {
     console.log('take slot - your turn');
     let id = $( this ).attr('data-id').split(',');
 
@@ -151,11 +218,58 @@ const finishTurn = function () {
   // Check for win;
   let winInfo = checkForWin() //ref: tic-tac-toe.js
   if ( winInfo.win === true ) {
-    winDisplay( winInfo ); //ref: tic-tac-toe.js
+
+    if ( multiIsMyTurn() ) {
+      updateWinCount( true ); // TODO: is defined but does nothing;
+    } else {
+      updateWinCount( false );
+    }
+
+    winDisplay( winInfo, resetOnlineGame ); //ref: tic-tac-toe.js
   }
 
   // switch players
   switchPlayers(); // ref: tic-tac-toe.js
+}
+
+const updateWinCount = function ( win ){
+  // get current player ID's win/loss stats
+
+  // put this in callback function
+  if ( win === true ) {
+    // player.win ++
+  } else {
+    // player.loss ++
+  }
+
+  // update player stats
+
+};
+
+const updateMultiWinDisplay = function (){};
+
+const receiveRemoteGameData = function ( snapshot ) {
+  //if foo then finishturn,
+  // else if null removeGameFromFirebase and boottomenu
+  if ( snapshot === null || snapshot === undefined ) {
+    removeGameFromFirebase();
+    bootToMenu();
+  } else if ( snapshot.lastSlotID !== undefined ) {
+    _onlineGame = snapshot;
+    finishTurn();
+  }
+}
+
+const resetOnlineGame = function() {
+  updates['/games/' + _gameID] = {
+    players: null,
+    status: 0, // waiting for players
+    gameData: [["empty","empty","empty"],
+               ["empty","empty","empty"],
+               ["empty","empty","empty"]]
+  }
+
+  firebase.database().ref().update(updates).then( waitForPlayers( _gameID ));
 }
 
 const updateRemoteGameData = function ( gameData, slotID ) {
@@ -169,39 +283,50 @@ const updateRemoteGameData = function ( gameData, slotID ) {
   firebase.database().ref().update(updates);
 }
 
-const startGame = function ( onlineGame ) {
-    _onlineGame = onlineGame
-    // TODO: get / set scores in game for player ID
+const startGame = function () {
 
-    //updateScoreDisplay(score); //enable when scores are retrieved from db
+  game = firebase.database().ref('/games/' + _gameID);
+  game.once('value', function(snapshot) {
+    _onlineGame = snapshot.val()
+    // updateMultiWinDisplay(); // TODO: is defined but does nothing;
 
-    resetGameBoard() // ref: tic-tac-toe.js
+    resetGameBoard(); // ref: tic-tac-toe.js
 
     aiEnabled = false;
 
-    _onlinePlayers.Nought = _onlineGame.players[0];
-    _onlinePlayers.Cross = _onlineGame.players[1];
+    const onlinePlayers = Object.keys(_onlineGame.players);
+    _onlinePlayers.Nought = onlinePlayers[0];
+    _onlinePlayers.Cross = onlinePlayers[1];
+
+    // select player to track
+    let trackPlayer = onlinePlayers[0];
+    if (onlinePlayers[0] === myUID) {
+      trackPlayer = onlinePlayers[1];
+    }
+
+    console.log('tracking player',trackPlayer);
+    firebase.database().ref('/players/' + trackPlayer + '/status').on('value', function (snapshot){
+      let status = snapshot.val()
+      console.log('status change detected:', status);
+      if (status === 'Offline') {
+        setPlayerStatus('Offline');
+        firebase.database().ref('/players/' + trackPlayer + '/status').off();
+        removeGameFromFirebase();
+        bootToMenu();
+      }
+    });
 
     addClickEvents( takeSlotMulti ); // ref: tic-tac-toe.js
 
     // start watching game data
-
-    let game = firebase.database().ref('/games/' + _gameID);
     game.on('value', function(snapshot) {
-      _onlineGame = snapshot.val();
-      console.log(_onlineGame);
-      if (_onlineGame.lastSlotID !== undefined) {
-        console.log( 'watch game data for change triggered');
-        finishTurn();
-      }
+      receiveRemoteGameData( snapshot.val() );
     });
+  });
+
 }
 
 const findGame = function( userId ) {
-  let games;
-  let promiseComplete = false;
-  let timeout = 2000; //milliseconds
-
-  return firebase.database().ref('games/').once('value')
+  return firebase.database().ref('waitingGames/').once('value')
 
 }
