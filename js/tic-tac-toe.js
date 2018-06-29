@@ -3,7 +3,7 @@ let player = "Nought";
 let score = {
   nought: 0,
   cross: 0
-}
+};
 
 let NoughtIco = '<i class="far fa-circle"></i>'
 let CrossIco = '<i class="fas fa-times"></i>'
@@ -90,6 +90,7 @@ const resetGameBoard = function () {
   // reset gamedata and gameboard
   gameData.length = 0;
   $('#gameboard').html("");
+  $('.winmsg').remove();
   player = "Nought"
 
   // populate gamedata and gameboard
@@ -140,7 +141,7 @@ const winDisplay = function ( winInfo, replayFn ) { // display the win diaglog
 
   if ( winInfo.tie !== undefined ) {
     // it's a draw!
-    $( '#gameboard' ).append( $( '<div>').addClass('winmsg').html(`It's a draw!`).append( replayBtn ) );
+    $( '.container' ).append( $( '<div>').addClass('winmsg respWidth').html(`It's a draw!`).append( replayBtn ) );
     replayBtn.on( 'click', replayFn)
   } else {
     // update scores & save to cookies
@@ -153,7 +154,7 @@ const winDisplay = function ( winInfo, replayFn ) { // display the win diaglog
       $( `div[data-id="${ slotID }"]` ).addClass('win');
     }
 
-    $( '#gameboard' ).append( $( '<div>').addClass('winmsg').html(`${ player } wins!`).append( replayBtn ) );
+    $( '.container' ).append( $( '<div>').addClass('winmsg respWidth').html(`${ player } wins!`).append( replayBtn ) );
     replayBtn.on( 'click', replayFn)
   }
 }
@@ -237,7 +238,7 @@ const callAI = function () {
 const pickRandomSlot = function () {
   let freeSlot = false;
   const win = {};
-  getRandomInt(9)
+  //getRandomInt(9)
 
   // get empty slots
   const emptySlots = [];
@@ -253,7 +254,7 @@ const pickRandomSlot = function () {
     }
   }
 
-  const rand = getRandomInt( emptySlots.length )
+  const rand = getRandomInt( emptySlots.length );
 
   win.aiSlots = [ emptySlots[rand] ]
 
@@ -415,21 +416,6 @@ const unbeatableAI = function ( plyr ) {
 const checkForWin = function () {
   // debugger;
 
-  let anyFreeSlots = false;
-  // check if  all slots taken
-  for (let x = 0; x < 3; x++) {
-    for ( let y = 0; y < 3; y++ ) {
-      if ( gameData[x][y] === "empty" ) {
-        anyFreeSlots = true;
-        break; // stop loop if there's at least one empty slot
-      }
-    }
-  }
-
-  if ( anyFreeSlots === false ) {
-    return { win: true, tie: true, slots: [], aiSlots: [] };
-  }
-
   let win = checkYforWin( player );
   if (win.win === true) {
     return win;
@@ -448,6 +434,22 @@ const checkForWin = function () {
   win = diag2ForWin( player );
   if (win.win === true ) {
     return win;
+  }
+
+  // check for draw
+  let anyFreeSlots = false;
+  // check if  all slots taken
+  for (let x = 0; x < 3; x++) {
+    for ( let y = 0; y < 3; y++ ) {
+      if ( gameData[x][y] === "empty" ) {
+        anyFreeSlots = true;
+        break; // stop loop if there's at least one empty slot
+      }
+    }
+  }
+
+  if ( anyFreeSlots === false ) {
+    return { win: true, tie: true, slots: [], aiSlots: [] };
   }
 
   return win;

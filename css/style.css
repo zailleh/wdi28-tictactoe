@@ -7,6 +7,8 @@ body {
   font-family: 'Concert One', cursive;
   /* background-repeat: space; */
   animation: slide 30s linear infinite;
+  padding: 0;
+  margin: 0;
 
 }
 
@@ -27,32 +29,33 @@ body {
   align-items: center;
   justify-content: center;
   vertical-align: baseline;
+  max-width: 100vw;
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 #gameboard {
-  padding: 2vw;
+  padding: 2vmin;
   background-color: white;
   position: relative;
-  border-radius: 2vw;
+  border-radius: 2vmin;
   display: grid;
   grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-  max-width: 640px;
   max-height: 640px;
-  height: calc( 100vmin - 11vmax );
-  width: calc( 100vmin - 11vmax );
-  min-width: 320px;
+  height: calc( 100vmin - 21vmax );
   min-height: 320px;
   /* margin: auto auto; */
-  box-shadow: 1vw 1vw 1vw rgba(0,0,0,0.25);
+  box-shadow: 1vmin 1vmin 1vmin rgba(0,0,0,0.25);
 }
 
 h1#title, #statusDisplay {
-  font-size: 7vmin;
-  margin: .125em;
+  font-size: 6vmin;
+  padding: .125em;
+  margin: 0;
   color: #FFF;
   text-shadow: .1em .1em .1em rgba(0,0,0,0.25);
   min-width: 341px;
@@ -60,11 +63,11 @@ h1#title, #statusDisplay {
   justify-content: space-evenly;
   align-items: center;
   max-width: 640px;
-  width: calc( 100vmin - 11vmax );
+  width: calc( 100vmin - 21vmax );
 }
 
 #statusDisplay {
-  font-size: 3vmin;
+  font-size: 2vmin;
   color: white;
   text-shadow: 0 0 0.2em darkblue
 }
@@ -94,10 +97,14 @@ h1#title, #statusDisplay {
   color: green;
 }
 
+.respWidth {
+  min-width: 320px;
+  width: calc( 100vmin - 21vmax );
+  max-width: 640px;
+}
+
 .winmsg {
-  position: absolute;
-  top: 100%;
-  width: 100%;
+
   background-color: white;
   padding: .25em;
   border-radius: .5em;
@@ -108,6 +115,8 @@ h1#title, #statusDisplay {
   align-content: space-between;
   align-items: center;
   justify-content: space-around;
+  margin-top: 0.25em;
+  z-index: 1;
 }
 
 .menubutton {
@@ -135,7 +144,7 @@ h1#title, #statusDisplay {
 
 .score{
   color: red;
-  font-size: 4vmin;
+  font-size: 3vmin;
 }
 
 .waiting {

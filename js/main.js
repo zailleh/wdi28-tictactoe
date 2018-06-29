@@ -4,7 +4,8 @@ let menu;
 const bootToMenu = function() {
   $( '#gameboard' ).html(menu); //reset gameboard
   $( '.score' ).remove();
-  $( '#statusDisplay' ).html("")
+  $( '#statusDisplay' ).html("");
+  $('.winmsg').remove();
   addMenuListeners();
 }
 

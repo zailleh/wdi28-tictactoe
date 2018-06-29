@@ -303,9 +303,9 @@ const updateMultiWinDisplay = function ( players ){
       let $title = $( '#title' );
       console.log(scores);
       if ( playerNum === 1 ) {
-        score.cross = scores.win
+        score.cross = isValidNumber(scores.win) ? scores.win : 0
       } else if ( playerNum === 0 ) {
-        score.nought = scores.win
+        score.nought = isValidNumber(scores.win) ? scores.win : 0
       }
 
       updateScoreDisplay( score ); //ref: tic-tac-toe.js
