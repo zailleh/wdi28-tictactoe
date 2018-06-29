@@ -7,11 +7,9 @@ const _onlinePlayers = {
 let _onlineGame;
 let _gameID;
 let myUID;
-
-
+let overrideUID = false;
 
 const startMulti = function() {
-  // TODO: loading screen
   if (firebase.apps.length === 0) {
     initFirebase();
   }
@@ -19,9 +17,16 @@ const startMulti = function() {
   console.log('auth with google');
   authWithGoogle().then(
     function(result) {
+      currentUser = firebase.auth().currentUser
+      if (overrideUID === false) {
+        myUID = currentUser.uid;
+      } else {
+        myUID = overrideUID;
+      }
 
-      myUID = firebase.auth().currentUser.uid;
-      myUID = $( '#playerID' ).val();
+      firebase.database().ref('/players/' + myUID + '/img').set(currentUser.photoURL)
+      firebase.database().ref('/players/' + myUID + '/name').set(currentUser.displayName.split(" ")[0])
+
       setPlayerStatus( 'Online' );
       // set me offline when I go offline.
       firebase.database().ref('/players/' + myUID + '/status').onDisconnect().set("Offline");
@@ -228,6 +233,8 @@ const finishTurn = function () {
     }
 
     winDisplay( winInfo, resetOnlineGame ); //ref: tic-tac-toe.js
+    displayUserInfo( 'Nought' );
+    displayUserInfo( 'Cross' );
   }
 
   // switch players
@@ -304,12 +311,19 @@ const updateMultiWinDisplay = function ( players ){
       console.log(scores);
       if ( playerNum === 1 ) {
         score.cross = isValidNumber(scores.win) ? scores.win : 0
+
       } else if ( playerNum === 0 ) {
         score.nought = isValidNumber(scores.win) ? scores.win : 0
+
       }
 
       updateScoreDisplay( score ); //ref: tic-tac-toe.js
 
+      if ( playerNum === 1 ) {
+        displayUserInfo( 'Cross' );
+      } else if ( playerNum === 0 ) {
+        displayUserInfo( 'Nought' );
+      }
     });
   }
 };
@@ -359,6 +373,37 @@ const whichPlayer = function ( userID ) {
   }
 }
 
+const createUserInfo = function ( info ) {
+  const $userInfo = $( '<div>' ).append( $('<img>').attr('src',info.img) );
+  $userInfo.append( $('<div>').text(info.name) );
+  $userInfo.addClass('userInfo');
+  return $userInfo;
+}
+
+const displayUserInfo = function( player ) {
+  if (player === 'Cross') {
+    $('#crossScore .userInfo').remove(); //remove any existing ones so we can replace them;
+
+    firebase.database().ref('/players/' + _onlinePlayers.Cross ).once('value', function( snap ) {
+      const $userInfo =  createUserInfo( snap.val() );
+      $( '#crossScore' ).append( $userInfo );
+    });
+  } else if (player === 'Nought') {
+    $('#NoughtsScore .userInfo').remove(); //remove any existing ones so we can replace them;
+    firebase.database().ref('/players/' + _onlinePlayers.Nought ).once('value', function( snap ) {
+      // debugger;
+      const $userInfo =  createUserInfo( snap.val() );
+      $( '#NoughtsScore' ).append( $userInfo );
+    });
+  }
+
+
+
+
+
+
+}
+
 const startGame = function () {
 
   game = firebase.database().ref('/games/' + _gameID);
@@ -387,7 +432,9 @@ const startGame = function () {
     displayTurn( player );
     displayMyPlayer( whichPlayer( myUID ) );
 
+
     console.log('tracking player',trackPlayer);
+
     firebase.database().ref('/players/' + trackPlayer + '/status').on('value', function (snapshot){
       let status = snapshot.val()
       console.log('status change detected:', status);
