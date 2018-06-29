@@ -69,7 +69,8 @@ h1#title, #statusDisplay {
 #statusDisplay {
   font-size: 2vmin;
   color: white;
-  text-shadow: 0 0 0.2em darkblue
+  text-shadow: 0 0 0.2em darkblue;
+  margin-bottom: .25em;
 }
 
 
