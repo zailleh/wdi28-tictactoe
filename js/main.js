@@ -19,7 +19,7 @@ const addMenuListeners = function() {
 }
 
 $( document ).ready( function () {
-
+  $( '.homebutton' ).on( 'click', bootToMenu );
   addMenuListeners();
   menu = $( '#gameboard' ).html() //take backup of menu to come back to
 

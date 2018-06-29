@@ -182,3 +182,13 @@ h1#title, #statusDisplay {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.homebutton {
+  font-size: 2vmin;
+  padding: .25em;
+  border-radius: .25em;
+  background-color: darkgrey;
+  border: 0;
+  box-shadow: .125em .125em .125em rgba(0,0,0,.25);
+  color: white;
+}
